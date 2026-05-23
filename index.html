@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Fuga no Pantanal</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Nunito:wght@400;700;900&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{background:#000;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;height:100vh;width:100%;font-family:'Nunito',sans-serif;overflow:hidden;touch-action:none;}
+#gw{position:relative;width:100%;max-width:480px;display:flex;flex-direction:column;height:100%;}
+#hdr{display:flex;justify-content:space-between;align-items:center;padding:5px 10px;background:rgba(0,0,0,0.88);border-bottom:2px solid #1a4a2a;gap:4px;}
+.st{display:flex;flex-direction:column;align-items:center;min-width:44px;}
+.sl{font-size:9px;color:#a8ddb0;text-transform:uppercase;letter-spacing:.8px;font-weight:700;}
+.sv{font-family:'Bebas Neue',sans-serif;font-size:22px;color:#ffffff;line-height:1;}
+canvas{display:block;width:100%;height:auto;}
+/* Bars row */
+#bars{display:flex;gap:8px;padding:5px 10px;background:rgba(0,0,0,0.82);border-bottom:1px solid #1a3a20;}
+.barw{flex:1;display:flex;flex-direction:column;gap:3px;}
+.barlabel{font-size:9px;color:#c8eecC;text-transform:uppercase;letter-spacing:.5px;font-weight:700;}
+.bartk{height:8px;background:rgba(255,255,255,0.12);border-radius:4px;overflow:hidden;border:1px solid rgba(255,255,255,0.08);}
+.barfill{height:100%;border-radius:4px;transition:width .15s;}
+#fomebar{background:linear-gradient(90deg,#ff8822,#ffcc33);}
+#energybar{background:linear-gradient(90deg,#22aaff,#55ddff);}
+#safebar{background:linear-gradient(90deg,#44cc66,#88ffaa);}
+#ftr{background:rgba(0,0,0,0.85);border-top:2px solid #1a4a2a;padding:5px 10px;display:flex;justify-content:space-between;align-items:center;}
+#sn{font-size:9px;color:#a0d8a8;font-style:italic;max-width:82%;line-height:1.4;}
+
+/* Overlays */
+.ov{position:absolute;top:0;left:0;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;overflow-y:auto;-webkit-overflow-scrolling:touch;background:rgba(2,10,5,0.97);z-index:10;gap:0;padding:0;}
+.ov-inner{display:flex;flex-direction:column;align-items:center;gap:12px;padding:16px 14px 80px;}
+.ov h1{font-family:'Bebas Neue',sans-serif;font-size:34px;color:#7eeaa0;text-align:center;line-height:1;text-shadow:0 0 18px rgba(110,212,138,.5);}
+.ov h2{font-family:'Bebas Neue',sans-serif;font-size:24px;color:#ffffff;text-align:center;}
+.ov p{font-size:11px;color:#c8e8d0;text-align:left;line-height:1.7;max-width:400px;}
+.ov p strong{color:#ffffff;}
+.ov p em{color:#88ffbb;font-style:italic;}
+/* Sci card — light bg for readability */
+.sci-card{background:rgba(20,65,32,0.92);border:1.5px solid #3a7a4a;border-radius:10px;padding:13px 15px;max-width:400px;width:100%;}
+.sci-card h3{font-family:'Bebas Neue',sans-serif;font-size:15px;color:#7eeaa0;margin-bottom:7px;letter-spacing:1px;}
+.sci-card p{font-size:11px;color:#ddf4e4;line-height:1.7;text-align:left;}
+.sci-card p strong{color:#ffffff;}
+.sci-card p em{color:#88ffbb;font-style:italic;}
+.sci-card .ref{font-size:9px;color:#88bb99;margin-top:6px;font-style:italic;}
+.mech-row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;max-width:400px;}
+.mech{background:rgba(20,60,30,0.9);border:1.5px solid #2e6a3e;border-radius:8px;padding:9px 10px;flex:1;min-width:105px;text-align:center;}
+.mech .ico{font-size:20px;margin-bottom:3px;}
+.mech .mt{font-size:10px;color:#aaffcc;font-weight:900;text-transform:uppercase;letter-spacing:.5px;}
+.mech .md{font-size:10px;color:#c0e8cc;line-height:1.4;margin-top:3px;}
+.bp{background:linear-gradient(135deg,#22dd44,#18aa33);color:#ffffff;border:3px solid #55ff77;padding:16px 36px;font-family:'Bebas Neue',sans-serif;font-size:24px;border-radius:12px;cursor:pointer;letter-spacing:2px;width:100%;max-width:340px;box-shadow:0 0 24px rgba(60,220,100,0.5);}
+/* Warn box — game over and action card */
+.warn{background:rgba(140,45,10,0.5);border:1.5px solid #cc6622;border-radius:8px;padding:11px 14px;max-width:400px;width:100%;}
+.warn h3{font-family:'Bebas Neue',sans-serif;font-size:14px;color:#ffaa55;margin-bottom:5px;letter-spacing:.8px;}
+.warn p{font-size:11px;color:#ffcc99;line-height:1.6;}
+.warn p strong{color:#ffffff;}
+/* Game over score */
+#goTitle{color:#ff6655;}
+#gs{color:#ffffff;font-size:26px;}
+#gsv{color:#bbddcc;text-align:center;font-size:11px;}
+
+#lb{position:absolute;top:43%;left:50%;transform:translate(-50%,-50%);font-family:'Bebas Neue',sans-serif;font-size:44px;color:#6ed48a;text-shadow:0 0 28px rgba(110,212,138,.8);z-index:5;pointer-events:none;opacity:0;transition:opacity .3s;}
+/* Burst button — visible, labeled, touchable */
+#bui{position:absolute;bottom:8px;right:8px;width:52px;height:52px;cursor:pointer;z-index:4;}
+#buiLabel{position:absolute;bottom:8px;right:8px;width:52px;height:52px;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;z-index:5;}
+#buiLabel span.bi{font-size:16px;line-height:1;}
+#buiLabel span.bt{font-size:7px;color:#ffffff;font-weight:900;letter-spacing:.5px;margin-top:1px;}
+#rui{position:absolute;bottom:10px;left:8px;font-size:10px;color:#44ff88;font-weight:900;background:rgba(8,35,16,.88);border:1px solid #44ff88;border-radius:6px;padding:4px 8px;display:none;letter-spacing:.5px;}
+#popup{position:absolute;top:52px;left:50%;transform:translateX(-50%);font-family:'Bebas Neue',sans-serif;font-size:22px;color:#ffdd44;text-shadow:0 0 10px rgba(255,220,60,.6);pointer-events:none;opacity:0;transition:opacity .22s;white-space:nowrap;}
+#danger{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;opacity:0;background:radial-gradient(ellipse at center, transparent 40%, rgba(255,40,20,0.35) 100%);transition:opacity .2s;z-index:3;}
+</style>
+</head>
+<body>
+<div id="gw">
+  <div id="hdr">
+    <div class="st"><span class="sl">Pontos</span><span class="sv" id="sc">0</span></div>
+    <div class="st"><span class="sl">Vidas</span><span class="sv" id="lv">🐟🐟🐟</span></div>
+    <div class="st"><span class="sl">Fase</span><span class="sv" id="nl">1</span></div>
+    <div class="st"><span class="sl">Tempo</span><span class="sv" id="tm">0s</span></div>
+  </div>
+  <div id="bars">
+    <div class="barw">
+      <span class="barlabel">🍽 Fome</span>
+      <div class="bartk"><div class="barfill" id="fomebar" style="width:100%"></div></div>
+    </div>
+    <div class="barw">
+      <span class="barlabel">⚡ Energia</span>
+      <div class="bartk"><div class="barfill" id="energybar" style="width:100%"></div></div>
+    </div>
+    <div class="barw">
+      <span class="barlabel">🌿 Aguapé</span>
+      <div class="bartk"><div class="barfill" id="safebar" style="width:0%"></div></div>
+    </div>
+  </div>
+  <canvas id="gc" width="480" height="560"></canvas>
+  <div id="lb"></div>
+  <canvas id="bui" width="52" height="52" onclick="triggerBurst()"></canvas>
+  <div id="buiLabel"><span class="bi">⚡</span><span class="bt">BURST</span></div>
+  <div id="rui">🌿 REFÚGIO</div>
+  <div id="popup"></div>
+  <div id="danger"></div>
+  <div id="ftr">
+    <div id="sn"><span id="snt">Trachemys dorbigni: predadora invasora em áreas úmidas brasileiras</span></div>
+    <div style="font-size:9px;color:#88bb99;font-weight:700;">WASD / toque</div>
+  </div>
+
+  <!-- ===== START SCREEN ===== -->
+  <div class="ov" id="ss">
+    <div class="ov-inner">
+      <h1>🐟 FUGA NO<br>PANTANAL</h1>
+
+      <div class="warn">
+        <h3>⚠ INVASÃO BIOLÓGICA NO PANTANAL</h3>
+        <p>Espécies exóticas invasoras são a <strong>segunda maior causa de extinção de biodiversidade no mundo</strong> (IUCN, 2021). No Pantanal e demais zonas úmidas do Brasil, tartarugas do gênero <em>Trachemys</em> — introduzidas como animais de estimação e abandonadas — tornaram-se predadoras sem controle natural. Estudos documentam redução de <strong>30 a 60%</strong> na biomassa de peixes nativos em corpos d'água invadidos (Ferreira et al., 2018). Peixes como lambaris (<em>Moenkhausia</em> spp.) são componentes fundamentais da teia trófica do Pantanal: transferem energia do zooplâncton para predadores de topo como a piranha e o pintado. Perder essas populações desestabiliza toda a cadeia.</p>
+      </div>
+
+      <div class="sci-card">
+        <h3>BASE CIENTÍFICA DO JOGO</h3>
+        <p>
+          <strong>Você é um lambari nativo.</strong> Sua sobrevivência depende de:<br><br>
+          <strong>Alimentação:</strong> Lambaris são <em>onívoros oportunistas</em> — comem zooplâncton, insetos aquáticos e algas. Sem alimento, o metabolismo colapsa em minutos em água quente.<br><br>
+          <strong>Burst swimming:</strong> O reflexo de fuga rápida é mediado pelos <em>neurônios de Mauthner</em>, disparando em &lt;15ms. Mas é energeticamente custoso: correr demais sem comer leva à morte por esgotamento.<br><br>
+          <strong>Refúgio em macrófitas:</strong> Aguapé (<em>Eichhornia crassipes</em>) e vitória-régia (<em>Victoria amazonica</em>) formam zonas de proteção contra predadores. Porém, a vegetação densa reduz disponibilidade de oxigênio e alimento — o peixe não pode ficar parado por muito tempo.<br><br>
+          <strong>Tartarugas invasoras:</strong> <em>Trachemys</em> spp. usam <em>ambush predation</em> (espera imóvel) e perseguição ativa. Comem peixes, girinos e invertebrados. Sem predadores naturais no ambiente invadido, suas populações explodem.
+        </p>
+        <p class="ref">Ferreira et al. (2018) Hydrobiologia | Gibbons et al. (2000) BioScience | IUCN (2021) Invasive Species Specialist Group</p>
+      </div>
+
+      <div class="mech-row">
+        <div class="mech"><div class="ico">🍽</div><div class="mt">Fome</div><div class="md">Coma antes de esvaziar ou morre</div></div>
+        <div class="mech"><div class="ico">⚡</div><div class="mt">Energia</div><div class="md">Burst gasta energia. Sem comida = morte</div></div>
+        <div class="mech"><div class="ico">🌿</div><div class="mt">Aguapé</div><div class="md">Refúgio — mas sair antes de sufocar</div></div>
+        <div class="mech"><div class="ico">🐢</div><div class="mt">Tartaruga</div><div class="md">Come você e os outros peixes</div></div>
+      </div>
+
+      <p style="text-align:center;font-size:10px;color:#4a7a5a;"><strong style="color:#8ad4a0">WASD / setas</strong> mover &nbsp;|&nbsp; <strong style="color:#8ad4a0">SPACE</strong> ou duplo toque = burst</p>
+      <button class="bp" onclick="startGame()">INICIAR FUGA</button>
+    </div>
+  </div>
+
+  <!-- ===== GAME OVER ===== -->
+  <div class="ov" id="gos" style="display:none;">
+    <div class="ov-inner">
+      <h1 id="goTitle">CAPTURADO</h1>
+      <h2 id="gs" style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:#fff;">0 pontos</h2>
+      <p id="gsv" style="text-align:center;color:#bbddcc;font-size:11px;"></p>
+      <div class="sci-card" id="gf" style="font-size:11px;color:#ddf4e4;line-height:1.7;"></div>
+      <div class="warn" style="max-width:400px;">
+        <h3>O QUE VOCÊ PODE FAZER</h3>
+        <p>Nunca libere tartarugas exóticas na natureza. Denuncie ao IBAMA (0800 61 8080). Apoie projetos de controle de invasoras em zonas úmidas. <strong>O Pantanal depende de cada espécie nativa.</strong></p>
+      </div>
+      <button class="bp" onclick="startGame()">TENTAR NOVAMENTE</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// FUGA NO PANTANAL — v3
+// ============================================================
+const canvas=document.getElementById('gc');
+const ctx=canvas.getContext('2d');
+const W=480,H=560;
+const bc=document.getElementById('bui');
+const bctx=bc.getContext('2d');
+
+// Sci notes ticker
+const SNS=[
+  'Trachemys dorbigni: predadora invasora introduzida como pet, sem controle natural no Pantanal',
+  'Lambaris transferem energia do zooplâncton para predadores de topo como pintado e piranha',
+  'Burst swimming via neurônios de Mauthner: fuga reflexa em menos de 15ms',
+  'Macrófitas aquáticas reduzem eficiência de predação de tartarugas em até 70%',
+  'Espécies exóticas: 2ª maior causa de extinção de biodiversidade no mundo (IUCN 2021)',
+  'Esgotamento energético em peixes ocorre após bursts repetidos sem realimentação',
+  'Aguapé (Eichhornia crassipes): refúgio anti-predação mas com baixa disponibilidade de O₂',
+  'Tartarugas invasoras reduzem biomassa de peixes nativos em 30-60% (Ferreira et al. 2018)'
+];
+let snI=0;
+setInterval(()=>{document.getElementById('snt').textContent=SNS[snI++%SNS.length];},5000);
+
+// ---- State ----
+let state='idle',score=0,lives=3,level=1,survT=0,lvlT=0;
+let fid=null,lt=0,keys={};
+let burstT=0,burstCD=0,invT=0;
+let combo=0,comboTimer=0;
+// Survival bars (0-1)
+let hunger=1.0;    // empties over time; eating restores; zero = death
+let energy=1.0;    // burst drains; hunger restores slowly; zero = death
+let plantTime=0;   // seconds inside plant without eating; > threshold = suffocate
+const HUNGER_DRAIN=1/18;   // empties in 18s per level (faster each level)
+const ENERGY_DRAIN_BURST=0.22; // per burst
+const ENERGY_REGEN=1/25;   // per second when not bursting
+const PLANT_MAX=8;          // max seconds inside plant before suffocating
+const BD=250,BCD=1600;
+
+// Entities
+let player,turtles,preyFish,plants,food;
+
+// Particle pool
+const MAXP=60;
+let parts=[];
+function addP(x,y,col,vx,vy,sz,lf){
+  if(parts.length>=MAXP)return;
+  parts.push({x,y,vx:vx||0,vy:vy||0,col:col||'#fff',sz:sz||3,lf:lf||400,ml:lf||400});
+}
+
+// Static BG
+const bgc=document.createElement('canvas');bgc.width=W;bgc.height=H;
+const bgx=bgc.getContext('2d');
+(()=>{
+  const g=bgx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,'#0c2a16');g.addColorStop(.55,'#091e0f');g.addColorStop(1,'#061508');
+  bgx.fillStyle=g;bgx.fillRect(0,0,W,H);
+  for(let i=0;i<20;i++){
+    const cx=Math.random()*W,cy=Math.random()*H;
+    const gr=bgx.createRadialGradient(cx,cy,0,cx,cy,20+Math.random()*16);
+    gr.addColorStop(0,'rgba(40,160,90,0.07)');gr.addColorStop(1,'rgba(40,160,90,0)');
+    bgx.fillStyle=gr;bgx.fillRect(0,0,W,H);
+  }
+  // Sandy bottom
+  bgx.fillStyle='rgba(80,55,18,0.14)';bgx.fillRect(0,H-18,W,18);
+})();
+
+// ===== PLANT =====
+const PC=[
+  {col:'#267030',ac:'#50b05a',sz:28,name:'aguape'},
+  {col:'#357828',ac:'#6abf50',sz:20,name:'capim-mimoso'},
+  {col:'#18602a',ac:'#42a845',sz:34,name:'vitoria-regia'},
+];
+class Plant{
+  constructor(x,y){
+    const t=PC[Math.floor(Math.random()*PC.length)];
+    this.x=x!=null?x:22+Math.random()*(W-44);
+    this.y=y!=null?y:22+Math.random()*(H-44);
+    this.r=t.sz+Math.random()*10;
+    this.col=t.col;this.ac=t.ac;this.name=t.name;
+    this.leaves=4+Math.floor(Math.random()*4);
+    this.phase=Math.random()*Math.PI*2;
+  }
+  draw(now){
+    const sw=Math.sin(now/1400+this.phase)*.06;
+    ctx.save();ctx.translate(this.x,this.y);
+    // Safe zone ring (pulsing)
+    const pulse=.14+Math.sin(now/800+this.phase)*.06;
+    ctx.strokeStyle=`rgba(70,210,110,${pulse})`;ctx.lineWidth=3.5;
+    ctx.beginPath();ctx.arc(0,0,this.r*1.18,0,Math.PI*2);ctx.stroke();
+    // Leaves
+    for(let i=0;i<this.leaves;i++){
+      const a=(i/this.leaves)*Math.PI*2+sw;
+      const lx=Math.cos(a)*this.r*.68,ly=Math.sin(a)*this.r*.68;
+      ctx.fillStyle=this.col;
+      ctx.beginPath();ctx.ellipse(lx,ly,this.r*.44,this.r*.2,a,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle=this.ac+'40';
+      ctx.beginPath();ctx.ellipse(lx*.82,ly*.82,this.r*.17,this.r*.08,a,0,Math.PI*2);ctx.fill();
+    }
+    // Dark center
+    ctx.fillStyle='rgba(8,40,15,0.38)';ctx.beginPath();ctx.arc(0,0,this.r*.48,0,Math.PI*2);ctx.fill();
+    ctx.restore();
+  }
+  has(px,py){return Math.hypot(px-this.x,py-this.y)<this.r*1.05;}
+}
+
+// ===== FOOD =====
+const FT=[
+  {name:'zooplâncton',col:'#ffe055',sz:5,pts:8,shape:'c',hungerRestore:.22,energyRestore:.08},
+  {name:'inseto aquático',col:'#88ffaa',sz:5,pts:15,shape:'d',hungerRestore:.28,energyRestore:.15},
+  {name:'alga',col:'#44ddcc',sz:4,pts:6,shape:'c',hungerRestore:.12,energyRestore:.05},
+  {name:'larva de quironômideo',col:'#ffaa55',sz:4,pts:12,shape:'d',hungerRestore:.30,energyRestore:.12},
+];
+class Food{
+  constructor(){
+    const t=FT[Math.floor(Math.random()*FT.length)];
+    this.x=12+Math.random()*(W-24);this.y=12+Math.random()*(H-24);
+    this.vx=(Math.random()-.5)*.35;this.vy=(Math.random()-.5)*.35;
+    this.col=t.col;this.sz=t.sz;this.pts=t.pts;this.shape=t.shape;
+    this.name=t.name;this.hr=t.hungerRestore;this.er=t.energyRestore;
+    this.alive=true;this.alpha=1;
+    this.phase=Math.random()*Math.PI*2;this.age=0;
+  }
+  update(dt){
+    if(!this.alive){this.alpha-=.022;return;}
+    this.age+=dt;
+    this.vx+=(Math.random()-.5)*.035;this.vy+=(Math.random()-.5)*.035;
+    const sp=Math.hypot(this.vx,this.vy);if(sp>.45){this.vx*=.45/sp;this.vy*=.45/sp;}
+    this.x+=this.vx;this.y+=this.vy;
+    if(this.x<6)this.x=W-6;if(this.x>W-6)this.x=6;
+    if(this.y<6)this.y=H-6;if(this.y>H-6)this.y=6;
+  }
+  draw(){
+    if(this.alpha<=0)return;
+    const bob=Math.sin(this.age/420+this.phase)*1.8;
+    ctx.save();ctx.globalAlpha=this.alpha;ctx.translate(this.x,this.y+bob);
+    ctx.shadowBlur=7;ctx.shadowColor=this.col;
+    ctx.fillStyle=this.col;
+    if(this.shape==='d'){
+      ctx.beginPath();ctx.moveTo(0,-this.sz);ctx.lineTo(this.sz,0);ctx.lineTo(0,this.sz);ctx.lineTo(-this.sz,0);ctx.closePath();ctx.fill();
+    }else{
+      ctx.beginPath();ctx.arc(0,0,this.sz,0,Math.PI*2);ctx.fill();
+    }
+    ctx.restore();
+  }
+}
+
+// ===== PREY FISH =====
+class PreyFish{
+  constructor(){this.reset();}
+  reset(){
+    this.x=20+Math.random()*(W-40);this.y=20+Math.random()*(H-40);
+    this.vx=(Math.random()-.5)*.85;this.vy=(Math.random()-.5)*.85;
+    this.size=5+Math.random()*4;
+    this.hue=25+Math.random()*55;
+    this.alive=true;this.alpha=1;
+    this.fleeing=false;this.fleeT=0;
+    this.inPlant=false;
+    this.phase=Math.random()*Math.PI*2;this.age=0;
+  }
+  update(dt){
+    if(!this.alive){this.alpha-=.013;return;}
+    this.age+=dt;
+    if(this.fleeing){this.fleeT-=dt;if(this.fleeT<=0)this.fleeing=false;}
+    // Seek nearby plant if fleeing
+    if(this.fleeing&&!this.inPlant&&plants.length){
+      let np=null,nd=9999;
+      for(const p of plants){const d=Math.hypot(p.x-this.x,p.y-this.y);if(d<nd){nd=d;np=p;}}
+      if(np&&nd<200){const dx=np.x-this.x,dy=np.y-this.y,dl=Math.hypot(dx,dy)||1;this.vx+=dx/dl*.08;this.vy+=dy/dl*.08;}
+    }
+    this.vx+=(Math.random()-.5)*.09;this.vy+=(Math.random()-.5)*.09;
+    const mx=this.fleeing?2.1:(this.inPlant?.35:.75);
+    const sp=Math.hypot(this.vx,this.vy);if(sp>mx){this.vx*=mx/sp;this.vy*=mx/sp;}
+    this.x+=this.vx;this.y+=this.vy;
+    if(this.x<0)this.x=W;if(this.x>W)this.x=0;
+    if(this.y<0)this.y=H;if(this.y>H)this.y=0;
+    this.inPlant=plants.some(p=>p.has(this.x,this.y));
+  }
+  draw(){
+    if(this.alpha<=0)return;
+    const ang=Math.atan2(this.vy,this.vx);
+    const tw=Math.sin(this.age*.011)*.28;
+    ctx.save();ctx.globalAlpha=this.alpha;ctx.translate(this.x,this.y);ctx.rotate(ang);
+    if(this.inPlant){ctx.shadowBlur=5;ctx.shadowColor='#44ff88';}
+    ctx.fillStyle=`hsl(${this.hue},72%,55%)`;
+    ctx.beginPath();ctx.ellipse(0,0,this.size,this.size*.42,0,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.moveTo(-this.size,0);ctx.lineTo(-this.size-4+tw*2,-2.5);ctx.lineTo(-this.size-4+tw*2,2.5);ctx.closePath();ctx.fill();
+    ctx.restore();
+  }
+}
+
+// ===== TURTLE BEHAVIORS =====
+// States: ambush, pursuing_player, pursuing_prey, patrol, coordinated
+class Turtle{
+  constructor(patrolTarget){
+    do{this.x=Math.random()*W;this.y=Math.random()*H;}
+    while(Math.hypot(this.x-W/2,this.y-H/2)<140);
+    this.vx=0;this.vy=0;
+    // Size and speed scale with level
+    this.size=18+level*2;
+    this.speed=.75+level*.13;
+    this.state='ambush';
+    this.ambT=1200+Math.random()*2200;
+    this.target=null;
+    this.angle=Math.random()*Math.PI*2;
+    this.wb=0;this.wbd=(Math.random()>.5?1:-1)*.02;
+    this.eatT=0;
+    this.sp=Math.random()*Math.PI*2;
+    // Patrol path
+    this.patrolPts=patrolTarget||null;
+    this.patrolIdx=0;
+    // Unique behavior type
+    this.btype=Math.random()<.4?'ambush_specialist':(Math.random()<.5?'patrol':'chaser');
+    // Detection range (ambush specialists have wider detection)
+    this.detRange=(this.btype==='ambush_specialist'?130:95)+level*10;
+  }
+  update(dt,px,py,pl){
+    const dist=Math.hypot(px-this.x,py-this.y);
+    if(this.eatT>0){this.eatT-=dt;this.vx*=.86;this.vy*=.86;return;}
+
+    // Ambush or patrol when idle
+    if(this.state==='ambush'||this.state==='patrol'){
+      this.ambT-=dt;
+      // Sway
+      this.wb+=this.wbd*(dt/16);if(Math.abs(this.wb)>.1)this.wbd*=-1;
+
+      // Detect player (won't enter dense plant zone)
+      const playerInPlant=player&&player.inPlant;
+      if(dist<this.detRange&&!playerInPlant){this.state='pursuing_player';this.target='player';}
+
+      // Patrol movement
+      if(this.state==='patrol'&&this.patrolPts){
+        const pt=this.patrolPts[this.patrolIdx%this.patrolPts.length];
+        const dx=pt.x-this.x,dy=pt.y-this.y,d=Math.hypot(dx,dy)||1;
+        this.vx+=dx/d*.04;this.vy+=dy/d*.04;
+        if(d<20)this.patrolIdx++;
+      }else{this.vx*=.88;this.vy*=.88;}
+
+      // Hunt prey not in plant
+      if(this.ambT<=0){
+        this.ambT=900+Math.random()*1800;
+        let near=null,md=130+level*10;
+        for(const f of pl){
+          if(!f.alive||f.inPlant)continue;
+          const d=Math.hypot(f.x-this.x,f.y-this.y);
+          if(d<md){md=d;near=f;}
+        }
+        if(near){this.state='pursuing_prey';this.target=near;}
+      }
+    }
+
+    if(this.state==='pursuing_player'||this.state==='pursuing_prey'){
+      let tx,ty,lost=false;
+      if(this.state==='pursuing_player'){
+        tx=px;ty=py;
+        // Give up if player enters plant
+        if(player&&player.inPlant){lost=true;}
+        // Give up if too far
+        if(dist>this.detRange*1.6){lost=true;}
+      }else{
+        if(!this.target||!this.target.alive||this.target.inPlant){lost=true;}
+        else{tx=this.target.x;ty=this.target.y;}
+      }
+      if(lost){this.state=this.patrolPts?'patrol':'ambush';this.target=null;return;}
+
+      const dx=tx-this.x,dy=ty-this.y,d=Math.hypot(dx,dy)||1;
+      const acc=this.speed*(dt/16)*.26;
+      this.vx+=dx/d*acc;this.vy+=dy/d*acc;
+      const sp2=Math.hypot(this.vx,this.vy),mx=this.speed*1.3;
+      if(sp2>mx){this.vx*=mx/sp2;this.vy*=mx/sp2;}
+      this.angle=Math.atan2(this.vy,this.vx);
+      this.wb+=(Math.random()-.5)*.025;
+
+      // Eat prey
+      if(this.state==='pursuing_prey'&&this.target&&this.target.alive){
+        if(d<this.size*.82){
+          this.target.alive=false;this.eatT=500;
+          for(const f of pl){
+            if(Math.hypot(f.x-this.x,f.y-this.y)<80){f.fleeing=true;f.fleeT=1600;f.vx+=(f.x-this.x)*.07;f.vy+=(f.y-this.y)*.07;}
+          }
+          addP(this.x,this.y,'#ff8833',0,0,4,400);
+          this.state=this.patrolPts?'patrol':'ambush';this.target=null;
+        }
+      }
+    }
+
+    this.x+=this.vx;this.y+=this.vy;
+    this.vx*=.93;this.vy*=.93;
+    if(this.x<-30)this.x=W+30;if(this.x>W+30)this.x=-30;
+    if(this.y<-30)this.y=H+30;if(this.y>H+30)this.y=-30;
+  }
+  draw(){
+    ctx.save();ctx.translate(this.x,this.y);ctx.rotate(this.angle+this.wb);
+    const s=this.size;
+    // Shadow
+    ctx.fillStyle='rgba(0,0,0,0.16)';ctx.beginPath();ctx.ellipse(2,2,s,s*.75,0,0,Math.PI*2);ctx.fill();
+    // Shell
+    const sg=ctx.createRadialGradient(-s*.18,-s*.18,s*.1,0,0,s);
+    sg.addColorStop(0,'#8B7355');sg.addColorStop(.5,'#6B5B3E');sg.addColorStop(1,'#3a3020');
+    ctx.fillStyle=sg;ctx.beginPath();ctx.ellipse(0,0,s,s*.76,0,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle='rgba(0,0,0,0.27)';ctx.lineWidth=.8;
+    for(let i=0;i<5;i++){const a=(i/5)*Math.PI*2+this.sp;ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(Math.cos(a)*s*.77,Math.sin(a)*s*.63);ctx.stroke();}
+    ctx.fillStyle='rgba(180,160,100,0.2)';ctx.beginPath();ctx.ellipse(0,0,s*.32,s*.25,0,0,Math.PI*2);ctx.fill();
+    // Head
+    ctx.fillStyle='#5a7040';ctx.beginPath();ctx.ellipse(s*.83,0,s*.31,s*.22,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#ffdd44';ctx.beginPath();ctx.arc(s*1.02,-s*.08,2.2,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#000';ctx.beginPath();ctx.arc(s*1.04,-s*.08,1.1,0,Math.PI*2);ctx.fill();
+    // Legs
+    ctx.fillStyle='#5a7040';
+    [[.36,.65],[-.36,.65],[.36,-.65],[-.36,-.65]].forEach(([lx,ly])=>{
+      ctx.beginPath();ctx.ellipse(lx*s,ly*s*.8,s*.18,s*.11,ly>0?.75:-.75,0,Math.PI*2);ctx.fill();
+    });
+    ctx.beginPath();ctx.ellipse(-s*.86,0,s*.15,s*.09,0,0,Math.PI*2);ctx.fill();
+    ctx.restore();
+    // Alert
+    if(this.state==='pursuing_player'){
+      ctx.fillStyle='#ff3333';ctx.font='bold 12px Nunito';ctx.textAlign='center';
+      ctx.fillText('!',this.x,this.y-s-5);
+    }
+    // Patrol indicator
+    if(this.state==='patrol'&&this.btype==='patrol'){
+      ctx.fillStyle='rgba(255,200,50,0.5)';ctx.font='9px Nunito';ctx.textAlign='center';
+      ctx.fillText('~',this.x,this.y-s-4);
+    }
+  }
+}
+
+// ===== PLAYER =====
+class Player{
+  constructor(){
+    this.x=W/2;this.y=H*.45;
+    this.vx=0;this.vy=0;
+    this.angle=0;this.size=10;
+    this.inPlant=false;
+    this.tp=0;
+  }
+  update(dt){
+    let ax=0,ay=0;
+    if(keys['ArrowLeft']||keys['a']||keys['A'])ax-=1;
+    if(keys['ArrowRight']||keys['d']||keys['D'])ax+=1;
+    if(keys['ArrowUp']||keys['w']||keys['W'])ay-=1;
+    if(keys['ArrowDown']||keys['s']||keys['S'])ay+=1;
+    if(jDx||jDy){ax+=jDx;ay+=jDy;}
+    const ln=Math.hypot(ax,ay)||1;
+    if(ax||ay){
+      if(burstT>0){const bf=burstT/BD;this.vx+=ax/ln*4.2*bf;this.vy+=ay/ln*4.2*bf;}
+      else{this.vx+=ax/ln*.38;this.vy+=ay/ln*.38;}
+    }
+    if(burstT>0)burstT-=dt;
+    const fr=this.inPlant?.82:.87;
+    this.vx*=fr;this.vy*=fr;
+    const sp=Math.hypot(this.vx,this.vy),mx=burstT>0?7:2.4;
+    if(sp>mx){this.vx*=mx/sp;this.vy*=mx/sp;}
+    if(sp>.15)this.angle=Math.atan2(this.vy,this.vx);
+    this.x=Math.max(8,Math.min(W-8,this.x+this.vx));
+    this.y=Math.max(8,Math.min(H-8,this.y+this.vy));
+    this.tp+=dt*.013*Math.min(1,sp);
+  }
+  draw(){
+    const s=this.size,tw=Math.sin(this.tp)*.42,bw=Math.sin(this.tp*1.7)*.07;
+    ctx.save();ctx.translate(this.x,this.y);ctx.rotate(this.angle+bw);
+    if(invT>0&&Math.floor(invT/80)%2===0){ctx.globalAlpha=.32;}
+    if(this.inPlant){ctx.shadowBlur=9;ctx.shadowColor='#4aff6a';}
+    if(burstT>0){ctx.shadowBlur=13;ctx.shadowColor='#aaffcc';}
+    // Hunger tint: fish turns pale when starving
+    const hTint=Math.max(0,1-hunger*2);
+    const g=ctx.createLinearGradient(-s,0,s,0);
+    g.addColorStop(0,`hsl(${148-hTint*40},${65+hunger*20}%,${30+hunger*12}%)`);
+    g.addColorStop(.4,`hsl(${148-hTint*30},${75+hunger*15}%,${42+hunger*10}%)`);
+    g.addColorStop(1,`hsl(${148-hTint*40},${65+hunger*20}%,${32+hunger*10}%)`);
+    ctx.fillStyle=g;ctx.beginPath();ctx.ellipse(0,0,s*1.2,s*.47,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='rgba(180,255,200,0.26)';ctx.beginPath();ctx.ellipse(s*.2,s*.1,s*.66,s*.2,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle=`hsl(${148-hTint*40},60%,26%)`;ctx.beginPath();
+    ctx.moveTo(-s*1.1,0);ctx.lineTo(-s*1.83,s*.51+tw*s);ctx.lineTo(-s*1.48,0);ctx.lineTo(-s*1.83,-s*.51-tw*s);
+    ctx.closePath();ctx.fill();
+    ctx.fillStyle='rgba(30,175,88,0.6)';ctx.beginPath();ctx.moveTo(0,-s*.43);ctx.quadraticCurveTo(s*.28,-s*.9,s*.65,-s*.43);ctx.closePath();ctx.fill();
+    ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(s*.73,-s*.1,s*.27,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#1a3a2a';ctx.beginPath();ctx.arc(s*.80,-s*.1,s*.14,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(s*.84,-s*.14,s*.07,0,Math.PI*2);ctx.fill();
+    ctx.restore();
+  }
+}
+
+// ===== TOUCH =====
+let jDx=0,jDy=0,tId=null,tOrig=null,lastTap=0;
+canvas.addEventListener('touchstart',e=>{
+  e.preventDefault();
+  const now=Date.now();
+  if(now-lastTap<260&&state==='playing')triggerBurst();
+  lastTap=now;
+  if(tId===null){const t=e.changedTouches[0];tId=t.identifier;tOrig={x:t.clientX,y:t.clientY};}
+},{passive:false});
+canvas.addEventListener('touchmove',e=>{
+  e.preventDefault();
+  for(const t of e.changedTouches){
+    if(t.identifier===tId&&tOrig){
+      const dx=(t.clientX-tOrig.x)/36,dy=(t.clientY-tOrig.y)/36;
+      const l=Math.hypot(dx,dy);
+      if(l>1){jDx=dx/l;jDy=dy/l;}else{jDx=dx;jDy=dy;}
+    }
+  }
+},{passive:false});
+canvas.addEventListener('touchend',e=>{
+  e.preventDefault();
+  for(const t of e.changedTouches){if(t.identifier===tId){jDx=0;jDy=0;tId=null;tOrig=null;}}
+},{passive:false});
+
+function triggerBurst(){
+  if(burstCD>0||state!=='playing')return;
+  // Burst costs energy
+  energy=Math.max(0,energy-ENERGY_DRAIN_BURST);
+  burstT=BD;burstCD=BCD;
+  for(let i=0;i<7;i++)addP(player.x,player.y,'#88ffcc',(Math.random()-.5)*5,(Math.random()-.5)*5,2.5,300);
+}
+
+window.addEventListener('keydown',e=>{
+  keys[e.key]=true;
+  if((e.key===' '||e.code==='Space')&&state==='playing'){e.preventDefault();triggerBurst();}
+});
+window.addEventListener('keyup',e=>{keys[e.key]=false;});
+
+// ===== POPUP =====
+let popEl=document.getElementById('popup');
+function showPop(txt,col){
+  popEl.textContent=txt;popEl.style.color=col||'#ffdd44';
+  popEl.style.opacity=1;clearTimeout(popEl._t);
+  popEl._t=setTimeout(()=>{popEl.style.opacity=0;},950);
+}
+
+// ===== DANGER VIGNETTE =====
+let dangerEl=document.getElementById('danger');
+function setDanger(v){dangerEl.style.opacity=v;}
+
+// ===== GENERATE PATROL POINTS =====
+function genPatrol(){
+  const n=3+Math.floor(Math.random()*3);
+  const pts=[];
+  for(let i=0;i<n;i++)pts.push({x:30+Math.random()*(W-60),y:30+Math.random()*(H-60)});
+  return pts;
+}
+
+// ===== INIT =====
+function initGame(){
+  player=new Player();
+  // Difficulty: turtles scale aggressively from level 1
+  // Level 1: 2 turtles; Level 2: 3; Level 3: 4+patrol; etc.
+  const nT=1+level;
+  turtles=[];
+  for(let i=0;i<nT;i++){
+    const usePatrol=(level>=3&&i%2===0);
+    turtles.push(new Turtle(usePatrol?genPatrol():null));
+  }
+  preyFish=[];
+  for(let i=0;i<8+level*2;i++)preyFish.push(new PreyFish());
+  plants=[];
+  const nP=6+Math.floor(level*.5);
+  for(let i=0;i<nP;i++)plants.push(new Plant());
+  food=[];
+  const nF=8+level;
+  for(let i=0;i<nF;i++)food.push(new Food());
+  parts=[];burstT=0;burstCD=0;invT=0;combo=0;comboTimer=0;
+  hunger=1.0;energy=1.0;plantTime=0;
+  survT=0;lvlT=0;
+}
+
+function showBanner(txt){
+  const b=document.getElementById('lb');b.textContent=txt;b.style.opacity=1;
+  setTimeout(()=>{b.style.opacity=0;},1400);
+}
+
+function updHUD(){
+  document.getElementById('sc').textContent=score;
+  document.getElementById('nl').textContent=level;
+  document.getElementById('lv').textContent='🐟'.repeat(Math.max(0,lives))||'💀';
+  document.getElementById('tm').textContent=Math.floor(survT)+'s';
+  document.getElementById('fomebar').style.width=(hunger*100)+'%';
+  document.getElementById('energybar').style.width=(energy*100)+'%';
+  // Plant bar: how long inside (inverted — fills toward danger)
+  const ptFrac=player&&player.inPlant?Math.min(1,plantTime/PLANT_MAX):0;
+  document.getElementById('safebar').style.width=(ptFrac*100)+'%';
+  document.getElementById('safebar').style.background=ptFrac>.6?
+    'linear-gradient(90deg,#cc4422,#ff6644)':'linear-gradient(90deg,#44cc66,#88ffaa)';
+  // Burst ring — 52px canvas
+  bctx.clearRect(0,0,52,52);
+  const fr=Math.max(0,1-burstCD/BCD);
+  // Background circle
+  bctx.fillStyle='rgba(0,0,0,0.65)';
+  bctx.beginPath();bctx.arc(26,26,24,0,Math.PI*2);bctx.fill();
+  // Border
+  bctx.strokeStyle='rgba(255,255,255,0.15)';bctx.lineWidth=1;
+  bctx.beginPath();bctx.arc(26,26,24,0,Math.PI*2);bctx.stroke();
+  // Progress arc
+  bctx.strokeStyle=fr>=1?'#44ff88':'#2a7a44';bctx.lineWidth=4;
+  bctx.lineCap='round';
+  bctx.beginPath();bctx.arc(26,26,20,-Math.PI/2,-Math.PI/2+Math.PI*2*fr);bctx.stroke();
+  // Refuge UI
+  document.getElementById('rui').style.display=player&&player.inPlant?'block':'none';
+}
+
+// ===== DEATH CAUSE =====
+function diePanic(cause){
+  state='gameover';
+  const deathFacts={
+    hunger:'<strong>Fato:</strong> Lambaris precisam se alimentar continuamente — seu metabolismo em água quente (Pantanal, 28–32 °C) exige reposição energética frequente. A redução de recursos alimentares por invasoras como <em>Trachemys</em> é uma causa direta de colapso de populações nativas.',
+    energy:'<strong>Fato:</strong> O burst swimming repete o reflexo de Mauthner com alto custo energético. Sem realimentação, o músculo branco dos peixes entra em acidose lática. Em peixes pequenos, isso é fatal em minutos.',
+    suffocate:'<strong>Fato:</strong> Macrófitas aquáticas como o aguapé consomem oxigênio dissolvido nas camadas profundas do colmo radicular. Peixes que se refugiam por tempo excessivo podem sofrer hipóxia — especialmente em períodos de alta temperatura.',
+    caught:'<strong>Fato:</strong> <em>Trachemys</em> spp. usam ambush predation: ficam imóveis até a presa se aproximar e atacam com mordida rápida. Em ambiente invadido, sem predadores naturais das tartarugas, essa pressão sobre peixes é constante.',
+  };
+  const titleMap={hunger:'MORREU DE FOME',energy:'ESGOTAMENTO',suffocate:'SUFOCAMENTO',caught:'CAPTURADO'};
+  document.getElementById('goTitle').textContent=titleMap[cause]||'FIM';
+  document.getElementById('gs').textContent=score+' pontos';
+  document.getElementById('gsv').textContent='Sobreviveu '+Math.floor(survT)+'s | Fase '+level;
+  document.getElementById('gf').innerHTML=deathFacts[cause]||deathFacts.caught;
+  document.getElementById('gos').style.display='flex';
+}
+
+function startGame(){
+  document.getElementById('ss').style.display='none';
+  document.getElementById('gos').style.display='none';
+  score=0;lives=3;level=1;
+  initGame();showBanner('FASE 1');
+  state='playing';lt=performance.now();
+  if(fid)cancelAnimationFrame(fid);
+  fid=requestAnimationFrame(loop);
+}
+
+// ===== MAIN LOOP =====
+function loop(now){
+  if(state!=='playing')return;
+  const dt=Math.min(now-lt,50);lt=now;
+  const ds=dt/1000;
+  survT+=ds;lvlT+=ds;
+  if(burstCD>0)burstCD-=dt;
+  if(invT>0)invT-=dt;
+  if(comboTimer>0){comboTimer-=ds;if(comboTimer<=0)combo=0;}
+
+  // ---- LEVEL UP ----
+  if(lvlT>15+level*4){
+    level++;lvlT=0;score+=60*level;
+    // Add 1-2 turtles
+    const add=1+(level>4?1:0);
+    for(let i=0;i<add;i++){
+      const useP=(level>=3&&Math.random()<.5);
+      turtles.push(new Turtle(useP?genPatrol():null));
+    }
+    for(let i=0;i<3;i++)food.push(new Food());
+    for(let i=0;i<3;i++)preyFish.push(new PreyFish());
+    showBanner('FASE '+level);
+    showPop('FASE '+level+' — +'+60*level+' BÔNUS','#6ed48a');
+  }
+
+  // ---- SURVIVAL BARS ----
+  const hd=HUNGER_DRAIN*(1+level*.15); // harder each level
+  hunger=Math.max(0,hunger-hd*ds);
+
+  // Energy regen when not bursting, but only if has some hunger
+  if(burstT<=0&&hunger>.1)energy=Math.min(1,energy+ENERGY_REGEN*ds);
+  // Energy drains slowly if very hungry
+  if(hunger<.15)energy=Math.max(0,energy-.018*ds);
+
+  // Plant time counter
+  if(player.inPlant){
+    plantTime+=ds;
+  }else{
+    plantTime=Math.max(0,plantTime-ds*1.5);// recovers when outside
+  }
+
+  // Danger vignette
+  const dangerLevel=Math.max(0,
+    hunger<.25?(.25-hunger)/.25:0,
+    energy<.2?(.2-energy)/.2:0,
+    player.inPlant?plantTime/PLANT_MAX:0,
+  );
+  setDanger(dangerLevel*.7);
+
+  // Death checks
+  if(hunger<=0){diePanic('hunger');return;}
+  if(energy<=0){diePanic('energy');return;}
+  if(plantTime>=PLANT_MAX){diePanic('suffocate');return;}
+
+  // Warnings
+  if(hunger<.2&&Math.floor(survT*4)!==Math.floor((survT-ds)*4))
+    showPop('FOME CRÍTICA','#ff6633');
+  if(energy<.15&&Math.floor(survT*4)!==Math.floor((survT-ds)*4))
+    showPop('ENERGIA CRÍTICA','#33aaff');
+  if(player.inPlant&&plantTime>PLANT_MAX*.65&&Math.floor(survT*3)!==Math.floor((survT-ds)*3))
+    showPop('SAINDO DO AGUAPÉ!','#ffcc44');
+
+  // Score by time
+  if(Math.floor(survT*2)!==Math.floor((survT-ds)*2))score+=level;
+
+  // ---- UPDATE ----
+  player.update(dt);
+  player.inPlant=plants.some(p=>p.has(player.x,player.y));
+
+  for(const t of turtles)t.update(dt,player.x,player.y,preyFish);
+
+  for(const f of preyFish)f.update(dt);
+  preyFish=preyFish.filter(f=>f.alive||f.alpha>0);
+  while(preyFish.filter(f=>f.alive).length<6)preyFish.push(new PreyFish());
+
+  // Food update + collect
+  for(const fd of food)fd.update(dt);
+  for(const fd of food){
+    if(!fd.alive)continue;
+    if(Math.hypot(fd.x-player.x,fd.y-player.y)<player.size+fd.sz+3){
+      fd.alive=false;
+      hunger=Math.min(1,hunger+fd.hr);
+      energy=Math.min(1,energy+fd.er);
+      combo++;comboTimer=3.5;
+      const pts=fd.pts*Math.max(1,Math.min(combo,5));
+      score+=pts;
+      addP(fd.x,fd.y,fd.col,0,-1.5,3,320);
+      if(combo>=3)showPop('COMBO x'+combo+' +'+pts,fd.col);
+      else showPop('+'+pts+' '+fd.name,'#ffe088');
+    }
+  }
+  food=food.filter(fd=>fd.alive||fd.alpha>0);
+  // Replenish food (less food at higher levels = harder)
+  const minFood=Math.max(4,8-Math.floor(level/2));
+  while(food.filter(f=>f.alive).length<minFood)food.push(new Food());
+
+  // Particles
+  for(const p of parts){p.x+=p.vx;p.y+=p.vy;p.vx*=.96;p.vy*=.96;p.lf-=dt;}
+  parts=parts.filter(p=>p.lf>0);
+  if(burstT>0)addP(
+    player.x-Math.cos(player.angle)*5,player.y-Math.sin(player.angle)*5,
+    '#6affaa',(Math.random()-.5)*.4,(Math.random()-.5)*.4,2.2,200
+  );
+
+  // Turtle-player collision
+  if(invT<=0){
+    for(const t of turtles){
+      if(Math.hypot(player.x-t.x,player.y-t.y)<t.size+player.size*.7){
+        if(player.inPlant){
+          // Turtle bounces off
+          t.state=t.patrolPts?'patrol':'ambush';t.target=null;
+          t.vx*=-.5;t.vy*=-.5;
+          for(let i=0;i<5;i++)addP(player.x,player.y,'#4aff8a',(Math.random()-.5)*3,(Math.random()-.5)*3,3,340);
+          score+=12;invT=400;showPop('REFÚGIO! +12','#4aff8a');
+        }else{
+          lives--;invT=2200;combo=0;
+          const a=Math.atan2(player.y-t.y,player.x-t.x);
+          player.vx+=Math.cos(a)*5;player.vy+=Math.sin(a)*5;
+          hunger=Math.max(0,hunger-.15);// injury costs hunger
+          for(let i=0;i<12;i++)addP(player.x,player.y,'#ff4444',(Math.random()-.5)*4,(Math.random()-.5)*4,3.5,500);
+          if(lives<=0){diePanic('caught');return;}
+          showPop('AU! -1 VIDA','#ff4444');
+        }
+        break;
+      }
+    }
+  }
+
+  updHUD();
+
+  // ---- RENDER ----
+  ctx.drawImage(bgc,0,0);
+  // Shimmer
+  const ts=Date.now()/1000;
+  for(let i=0;i<3;i++){
+    const sx=((i*155+ts*20)%(W+60))-30;
+    ctx.strokeStyle='rgba(140,255,190,0.04)';ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.moveTo(sx,0);ctx.bezierCurveTo(sx+20,4,sx+40,-4,sx+60,0);ctx.stroke();
+  }
+  for(const p of plants)p.draw(ts*1000);
+  for(const fd of food)fd.draw();
+  for(const f of preyFish)f.draw();
+  for(const t of turtles)t.draw();
+  player.draw();
+  for(const p of parts){
+    const a=Math.max(0,p.lf/p.ml);
+    ctx.save();ctx.globalAlpha=a;ctx.fillStyle=p.col;
+    ctx.beginPath();ctx.arc(p.x,p.y,p.sz*a,0,Math.PI*2);ctx.fill();ctx.restore();
+  }
+
+  fid=requestAnimationFrame(loop);
+}
+</script>
+</body>
+</html>
